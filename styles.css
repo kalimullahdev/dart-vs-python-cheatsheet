@@ -1191,3 +1191,204 @@ mark.user-highlight:hover * {
   color: #ef4444;
   background-color: rgba(239, 68, 68, 0.1);
 }
+
+/* ==========================================================================
+   HTML Editor (Split View: Code + Live Preview)
+   ========================================================================== */
+.notes-drawer.expanded-html {
+  width: 640px;
+  max-width: 95vw;
+}
+
+.note-type-tabs {
+  display: flex;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 2px;
+  gap: 2px;
+  margin-bottom: 0.5rem;
+}
+
+.tab-btn {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  padding: 0.35rem 0.5rem;
+  font-size: 0.76rem;
+  font-weight: 600;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.tab-btn.active {
+  background-color: #2563eb;
+  color: #ffffff;
+}
+
+.html-split-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.65rem;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 0.5rem;
+  min-height: 180px;
+}
+
+@media (max-width: 600px) {
+  .html-split-container {
+    grid-template-columns: 1fr;
+  }
+}
+
+.html-editor-pane, .html-preview-pane {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.split-pane-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  letter-spacing: 0.05em;
+  margin-bottom: 0.3rem;
+}
+
+.html-textarea {
+  width: 100%;
+  flex: 1;
+  min-height: 140px;
+  background-color: var(--bg-code);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  color: #f8fafc;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  padding: 0.5rem;
+  outline: none;
+  resize: vertical;
+  line-height: 1.4;
+}
+
+.html-textarea:focus {
+  border-color: #3b82f6;
+}
+
+.html-preview-frame {
+  width: 100%;
+  flex: 1;
+  min-height: 140px;
+  background-color: #ffffff;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+}
+
+/* Popover HTML Split View */
+.comment-popover.popover-html-mode {
+  width: 540px;
+  max-width: 95vw;
+}
+
+.popover-view-tabs {
+  display: flex;
+  gap: 2px;
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+  padding: 2px;
+}
+
+.pop-tab {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 0.65rem;
+  font-weight: 600;
+  padding: 0.15rem 0.4rem;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.pop-tab.active {
+  background-color: #2563eb;
+  color: #ffffff;
+}
+
+.popover-html-split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem;
+  margin-bottom: 0.6rem;
+}
+
+@media (max-width: 580px) {
+  .popover-html-split {
+    grid-template-columns: 1fr;
+  }
+}
+
+.popover-split-col {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.pane-mini-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  margin-bottom: 0.25rem;
+}
+
+.popover-code-pre {
+  background-color: var(--bg-code) !important;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 0.5rem !important;
+  max-height: 170px;
+  overflow-y: auto;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  line-height: 1.4;
+  margin: 0 !important;
+}
+
+.popover-iframe {
+  width: 100%;
+  height: 170px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background-color: #ffffff;
+}
+
+.comment-popover.popover-below {
+  transform: translate(-50%, 0);
+  margin-top: 10px;
+}
+
+.comment-popover.popover-below::after {
+  top: auto;
+  bottom: 100%;
+  border-color: transparent transparent #161f33 transparent;
+}
+
+.comment-popover.popover-below::before {
+  top: auto;
+  bottom: 100%;
+  border-color: transparent transparent #2e3d5b transparent;
+}
+
+[data-theme="light"] .comment-popover.popover-below::after {
+  border-color: transparent transparent #ffffff transparent;
+}
+
+[data-theme="light"] .comment-popover.popover-below::before {
+  border-color: transparent transparent #cbd5e1 transparent;
+}
+

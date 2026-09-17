@@ -22,7 +22,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const quotePreviewBox = document.getElementById('quote-preview-box');
   const quotePreviewText = document.getElementById('quote-preview-text');
   const clearQuoteBtn = document.getElementById('clear-quote-btn');
+  const tabTextMode = document.getElementById('tab-text-mode');
+  const tabHtmlMode = document.getElementById('tab-html-mode');
+  const textEditorContainer = document.getElementById('text-editor-container');
+  const htmlEditorContainer = document.getElementById('html-editor-container');
   const noteInput = document.getElementById('note-input');
+  const htmlCodeInput = document.getElementById('html-code-input');
+  const htmlPreviewFrame = document.getElementById('html-preview-frame');
   const saveNoteBtn = document.getElementById('save-note-btn');
   const notesList = document.getElementById('notes-list');
   const exportJsonBtn = document.getElementById('export-json-btn');
@@ -31,8 +37,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Simple Popover Elements
   const commentPopover = document.getElementById('comment-popover');
+  const popoverBadge = document.getElementById('popover-badge');
   const popoverCloseBtn = document.getElementById('popover-close-btn');
   const popoverText = document.getElementById('popover-text');
+  const popoverHtmlSplit = document.getElementById('popover-html-split');
+  const popoverCodeView = document.getElementById('popover-code-view');
+  const popoverIframe = document.getElementById('popover-iframe');
   const popoverTime = document.getElementById('popover-time');
   const popoverDeleteBtn = document.getElementById('popover-delete-btn');
   let activePopoverNoteId = null;
@@ -46,6 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let pendingQuote = null;
   let pendingCardId = null;
   let pendingCardTitle = null;
+  let currentNoteMode = 'text'; // 'text' or 'html'
 
   // -------------------------------------------------------------
   // 1. Theme Toggle
@@ -415,7 +426,11 @@ document.addEventListener('DOMContentLoaded', () => {
       pendingCardId = cardId;
       pendingCardTitle = cardTitle;
     }
-    noteInput.focus();
+    if (currentNoteMode === 'html') {
+      htmlCodeInput.focus();
+    } else {
+      noteInput.focus();
+    }
   }
 
   function closeNotesDrawer() {
@@ -436,13 +451,59 @@ document.addEventListener('DOMContentLoaded', () => {
     quotePreviewText.textContent = '';
   }
 
+  // HTML / Plain Text Mode Tabs
+  if (tabTextMode && tabHtmlMode) {
+    tabTextMode.addEventListener('click', () => {
+      currentNoteMode = 'text';
+      tabTextMode.classList.add('active');
+      tabHtmlMode.classList.remove('active');
+      if (textEditorContainer) textEditorContainer.style.display = 'block';
+      if (htmlEditorContainer) htmlEditorContainer.style.display = 'none';
+      notesDrawer.classList.remove('expanded-html');
+      noteInput.focus();
+    });
+
+    tabHtmlMode.addEventListener('click', () => {
+      currentNoteMode = 'html';
+      tabHtmlMode.classList.add('active');
+      tabTextMode.classList.remove('active');
+      if (textEditorContainer) textEditorContainer.style.display = 'none';
+      if (htmlEditorContainer) htmlEditorContainer.style.display = 'block';
+      notesDrawer.classList.add('expanded-html');
+      updateHtmlPreview();
+      htmlCodeInput.focus();
+    });
+  }
+
+  if (htmlCodeInput) {
+    htmlCodeInput.addEventListener('input', updateHtmlPreview);
+  }
+
+  function updateHtmlPreview() {
+    if (htmlPreviewFrame && htmlCodeInput) {
+      htmlPreviewFrame.srcdoc = formatHtmlDocument(htmlCodeInput.value);
+    }
+  }
+
   // Save Note
   saveNoteBtn.addEventListener('click', () => {
-    const content = noteInput.value.trim();
-    if (!content) {
-      showToast('Please enter note text!');
-      noteInput.focus();
-      return;
+    let content = '';
+    const isHtmlMode = currentNoteMode === 'html';
+
+    if (isHtmlMode) {
+      content = htmlCodeInput.value.trim();
+      if (!content) {
+        showToast('Please enter HTML code!');
+        htmlCodeInput.focus();
+        return;
+      }
+    } else {
+      content = noteInput.value.trim();
+      if (!content) {
+        showToast('Please enter note text!');
+        noteInput.focus();
+        return;
+      }
     }
 
     const newNote = {
@@ -451,16 +512,24 @@ document.addEventListener('DOMContentLoaded', () => {
       cardTitle: pendingCardTitle || null,
       quote: pendingQuote || null,
       content: content,
+      isHtml: isHtmlMode,
       createdAt: new Date().toISOString()
     };
 
     userNotes.unshift(newNote);
     saveNotes(userNotes);
-    noteInput.value = '';
+
+    if (isHtmlMode) {
+      htmlCodeInput.value = '';
+      updateHtmlPreview();
+    } else {
+      noteInput.value = '';
+    }
+
     clearPendingQuote();
     renderNotesList();
     applyStoredHighlights();
-    showToast('Note saved permanently!');
+    showToast(isHtmlMode ? 'HTML note saved permanently!' : 'Note saved permanently!');
   });
 
   function renderNotesList() {
@@ -489,14 +558,35 @@ document.addEventListener('DOMContentLoaded', () => {
         ? `<span class="saved-note-card-title" data-card-id="${escapeAttr(note.cardId || '')}">${escapeHtml(note.cardTitle)}</span>` 
         : '<span>General Note</span>';
 
+      const typeBadge = note.isHtml 
+        ? `<span style="display:inline-block; font-size:0.62rem; font-weight:700; background:#2563eb; color:#fff; border-radius:3px; padding:1px 5px; margin-left:6px;">HTML</span>`
+        : '';
+
+      let contentHtml = '';
+      if (note.isHtml) {
+        contentHtml = `
+          <div class="saved-note-html-preview" style="margin-top:0.4rem; border:1px solid var(--border-color); border-radius:4px; overflow:hidden;">
+            <div style="font-family:var(--font-mono); font-size:0.7rem; max-height:70px; overflow:hidden; background:var(--bg-code); color:#94a3b8; padding:5px 8px; border-bottom:1px solid var(--border-color);">
+              ${escapeHtml(note.content.length > 160 ? note.content.substring(0, 160) + '...' : note.content)}
+            </div>
+            <iframe style="width:100%; height:110px; border:none; background:#ffffff; display:block;" sandbox="allow-same-origin" srcdoc="${escapeAttr(formatHtmlDocument(note.content))}"></iframe>
+          </div>
+        `;
+      } else {
+        contentHtml = `<div class="saved-note-content">${escapeHtml(note.content)}</div>`;
+      }
+
       return `
         <div class="saved-note-item" data-note-id="${note.id}">
           <div class="saved-note-header">
-            ${topicLink}
+            <div>
+              ${topicLink}
+              ${typeBadge}
+            </div>
             <span>${dateStr}</span>
           </div>
           ${quoteHtml}
-          <div class="saved-note-content">${escapeHtml(note.content)}</div>
+          ${contentHtml}
           <div class="saved-note-actions">
             ${note.cardId ? `<button class="note-action-btn jump-btn" data-card-id="${escapeAttr(note.cardId)}">Go to topic</button>` : ''}
             <button class="note-action-btn delete" data-delete-id="${note.id}">Delete</button>
@@ -701,11 +791,15 @@ document.addEventListener('DOMContentLoaded', () => {
     md += `*Exported on ${new Date().toLocaleString()}*\n\n`;
 
     userNotes.forEach((n, idx) => {
-      md += `### ${idx + 1}. ${n.cardTitle || 'General Side Note'}\n`;
+      md += `### ${idx + 1}. ${n.cardTitle || 'General Side Note'}${n.isHtml ? ' (HTML Note)' : ''}\n`;
       if (n.quote) {
         md += `> "${n.quote}"\n\n`;
       }
-      md += `${n.content}\n\n`;
+      if (n.isHtml) {
+        md += "```html\n" + n.content + "\n```\n\n";
+      } else {
+        md += `${n.content}\n\n`;
+      }
       md += `*Date: ${new Date(n.createdAt).toLocaleString()}*\n\n---\n\n`;
     });
 
@@ -790,19 +884,76 @@ document.addEventListener('DOMContentLoaded', () => {
     return str.replace(/"/g, '&quot;');
   }
 
+  function formatHtmlDocument(rawHtml) {
+    if (!rawHtml || !rawHtml.trim()) {
+      return `<!DOCTYPE html><html><head><meta charset="utf-8"><style>body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;margin:10px;font-size:13px;color:#94a3b8;font-style:italic;}</style></head><body>Live preview will appear here...</body></html>`;
+    }
+    if (/<html/i.test(rawHtml) || /<!DOCTYPE/i.test(rawHtml)) {
+      return rawHtml;
+    }
+    return `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      margin: 10px;
+      font-size: 13px;
+      line-height: 1.45;
+      color: #1e293b;
+      background: #ffffff;
+      word-break: break-word;
+    }
+    * { box-sizing: border-box; }
+    h1, h2, h3, h4, h5, h6 { margin-top: 0; margin-bottom: 6px; color: #0f172a; }
+    p { margin-top: 0; margin-bottom: 8px; }
+    code { font-family: monospace; background: #f1f5f9; padding: 2px 4px; border-radius: 3px; font-size: 12px; }
+    pre { background: #0f172a; color: #f8fafc; padding: 8px; border-radius: 4px; overflow-x: auto; font-size: 12px; }
+  </style>
+</head>
+<body>
+  ${rawHtml}
+</body>
+</html>`;
+  }
 
   // -------------------------------------------------------------
   // Simple Comment Popover (Shows directly above commented text)
+  // Supports side-by-side HTML editor & preview for HTML comments
   // -------------------------------------------------------------
   function showCommentPopover(mark, note) {
     activePopoverNoteId = note.id;
-    popoverText.textContent = note.content;
+
+    if (note.isHtml) {
+      commentPopover.classList.add('popover-html-mode');
+      if (popoverBadge) popoverBadge.innerHTML = '🌐 HTML Comment';
+      if (popoverText) popoverText.style.display = 'none';
+      if (popoverHtmlSplit) popoverHtmlSplit.style.display = 'grid';
+      if (popoverCodeView) popoverCodeView.textContent = note.content;
+      if (popoverIframe) popoverIframe.srcdoc = formatHtmlDocument(note.content);
+      if (window.Prism && popoverCodeView) {
+        Prism.highlightElement(popoverCodeView);
+      }
+    } else {
+      commentPopover.classList.remove('popover-html-mode');
+      if (popoverBadge) popoverBadge.innerHTML = '💬 Comment';
+      if (popoverText) {
+        popoverText.style.display = 'block';
+        popoverText.textContent = note.content;
+      }
+      if (popoverHtmlSplit) popoverHtmlSplit.style.display = 'none';
+    }
+
     const dateStr = new Date(note.createdAt).toLocaleString(undefined, {
       month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
     });
     popoverTime.textContent = dateStr;
 
-    // Position popover directly above the mark
+    // Reset styles to calculate natural geometry
+    commentPopover.classList.remove('popover-below');
+    commentPopover.style.display = 'block';
+
     const rect = mark.getBoundingClientRect();
     const scrollX = window.scrollX || window.pageXOffset;
     const scrollY = window.scrollY || window.pageYOffset;
@@ -812,14 +963,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     commentPopover.style.left = leftPos + 'px';
     commentPopover.style.top = topPos + 'px';
-    commentPopover.style.display = 'block';
 
-    // Prevent popover from going off-screen horizontally
+    // Horizontal bounds clamp
     const popoverRect = commentPopover.getBoundingClientRect();
+    const halfWidth = popoverRect.width / 2;
     if (popoverRect.left < 12) {
-      commentPopover.style.left = (12 + popoverRect.width / 2 + scrollX) + 'px';
+      commentPopover.style.left = (12 + halfWidth + scrollX) + 'px';
     } else if (popoverRect.right > window.innerWidth - 12) {
-      commentPopover.style.left = (window.innerWidth - 12 - popoverRect.width / 2 + scrollX) + 'px';
+      commentPopover.style.left = (window.innerWidth - 12 - halfWidth + scrollX) + 'px';
+    }
+
+    // Vertical bounds check: if popover goes off the top, flip below
+    if (popoverRect.top < 10) {
+      commentPopover.classList.add('popover-below');
+      commentPopover.style.top = (rect.bottom + scrollY + 12) + 'px';
     }
   }
 

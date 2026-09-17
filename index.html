@@ -107,10 +107,23 @@
   <!-- Simple Floating Comment Popover (Above Highlighted Text) -->
   <div id="comment-popover" class="comment-popover" role="dialog" aria-label="Comment popover">
     <div class="popover-header">
-      <span class="popover-badge">💬 Comment</span>
+      <span class="popover-badge" id="popover-badge">💬 Comment</span>
       <button class="popover-close-btn" id="popover-close-btn" type="button" aria-label="Close">&times;</button>
     </div>
     <div class="popover-text" id="popover-text"></div>
+
+    <!-- HTML Split View (Code & Live Preview Side-by-Side) -->
+    <div id="popover-html-split" class="popover-html-split" style="display: none;">
+      <div class="popover-split-col">
+        <div class="pane-mini-label">HTML Code</div>
+        <pre class="popover-code-pre"><code id="popover-code-view" class="language-html"></code></pre>
+      </div>
+      <div class="popover-split-col">
+        <div class="pane-mini-label">Live Preview</div>
+        <iframe id="popover-iframe" class="popover-iframe" sandbox="allow-same-origin" title="Comment HTML Preview"></iframe>
+      </div>
+    </div>
+
     <div class="popover-footer">
       <span class="popover-time" id="popover-time"></span>
       <button class="popover-delete-btn" id="popover-delete-btn" type="button">Delete</button>
@@ -140,13 +153,41 @@
           <button id="clear-quote-btn" class="clear-quote-btn" type="button" title="Remove quote attachment">&times;</button>
         </div>
 
-        <textarea 
-          id="note-input" 
-          class="note-textarea" 
-          placeholder="Write a comment or side note... (Auto-saves permanently)"
-        ></textarea>
+        <!-- Format Mode Tabs -->
+        <div class="note-type-tabs">
+          <button id="tab-text-mode" class="tab-btn active" type="button">Plain Text</button>
+          <button id="tab-html-mode" class="tab-btn" type="button">HTML (Code &amp; Preview)</button>
+        </div>
+
+        <!-- Plain Text Editor -->
+        <div id="text-editor-container">
+          <textarea 
+            id="note-input" 
+            class="note-textarea" 
+            placeholder="Write a comment or side note... (Auto-saves permanently)"
+          ></textarea>
+        </div>
+
+        <!-- HTML Split View Editor (Side-by-Side: Code & Live Preview) -->
+        <div id="html-editor-container" style="display: none;">
+          <div class="html-split-container">
+            <div class="html-editor-pane">
+              <div class="split-pane-label">HTML Code</div>
+              <textarea 
+                id="html-code-input" 
+                class="html-textarea" 
+                placeholder="Write full HTML code here, e.g.:&#10;&lt;div style=&quot;padding:8px; background:#eff6ff; border-radius:6px; color:#1e40af;&quot;&gt;&#10;  &lt;h4 style=&quot;margin:0 0 4px;&quot;&gt;Note Title&lt;/h4&gt;&#10;  &lt;p style=&quot;margin:0;&quot;&gt;Custom styled note...&lt;/p&gt;&#10;&lt;/div&gt;"
+                spellcheck="false"
+              ></textarea>
+            </div>
+            <div class="html-preview-pane">
+              <div class="split-pane-label">Live Preview</div>
+              <iframe id="html-preview-frame" class="html-preview-frame" sandbox="allow-same-origin" title="Live HTML Preview"></iframe>
+            </div>
+          </div>
+        </div>
         
-        <button id="save-note-btn" class="save-note-btn" type="button">Save Note</button>
+        <button id="save-note-btn" class="save-note-btn" type="button" style="margin-top: 0.5rem;">Save Note</button>
       </div>
 
       <!-- Notes List -->
