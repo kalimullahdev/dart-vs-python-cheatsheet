@@ -530,19 +530,25 @@ document.addEventListener('DOMContentLoaded', () => {
     notesBadge.textContent = userNotes.length;
   }
 
-  // Highlight Text in Cards
+  // Highlight Text in Cards (Multi-node text matching)
   function applyStoredHighlights() {
     userNotes.forEach(note => {
-      if (!note.quote || !note.cardId) return;
-      const card = document.getElementById(note.cardId);
-      if (!card) return;
-
-      highlightTextInElement(card, note.quote, note.id);
+      if (!note.quote) return;
+      let targetContainer = null;
+      if (note.cardId) {
+        targetContainer = document.getElementById(note.cardId);
+      }
+      if (!targetContainer) {
+        targetContainer = cardsContainer;
+      }
+      if (targetContainer) {
+        highlightTextInElement(targetContainer, note.quote, note.id);
+      }
     });
 
     // Attach click listener on highlights to open notes
     document.querySelectorAll('mark.user-highlight').forEach(mark => {
-      mark.addEventListener('click', (e) => {
+      mark.onclick = (e) => {
         e.stopPropagation();
         const noteId = mark.getAttribute('data-note-id');
         openNotesDrawer();
@@ -554,44 +560,101 @@ document.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => { noteItem.style.outline = 'none'; }, 2000);
           }
         }, 150);
-      });
+      };
     });
   }
 
   function highlightTextInElement(container, searchText, noteId) {
-    if (!searchText || searchText.length < 2) return;
-    const treeWalker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT, {
+    if (!searchText) return;
+    const target = searchText.trim();
+    if (target.length < 2) return;
+
+    // Avoid duplicate highlights for the same noteId
+    if (container.querySelector(`mark.user-highlight[data-note-id="${noteId}"]`)) {
+      return;
+    }
+
+    const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT, {
       acceptNode(node) {
-        if (node.parentElement && (node.parentElement.tagName === 'MARK' || node.parentElement.tagName === 'BUTTON' || node.parentElement.classList.contains('doc-link'))) {
-          return NodeFilter.FILTER_REJECT;
+        if (!node.nodeValue || node.nodeValue.length === 0) return NodeFilter.FILTER_REJECT;
+        let parent = node.parentElement;
+        while (parent && parent !== container) {
+          if (parent.tagName === 'BUTTON' || parent.classList.contains('doc-link') || parent.classList.contains('user-highlight')) {
+            return NodeFilter.FILTER_REJECT;
+          }
+          parent = parent.parentElement;
         }
         return NodeFilter.FILTER_ACCEPT;
       }
     });
 
-    let currentNode;
-    while ((currentNode = treeWalker.nextNode())) {
-      const text = currentNode.nodeValue;
-      const idx = text.indexOf(searchText);
-      if (idx !== -1) {
-        const range = document.createRange();
-        range.setStart(currentNode, idx);
-        range.setEnd(currentNode, idx + searchText.length);
+    const textNodes = [];
+    let fullText = '';
+    let curr;
+    while ((curr = walker.nextNode())) {
+      const start = fullText.length;
+      fullText += curr.nodeValue;
+      textNodes.push({
+        node: curr,
+        start: start,
+        end: fullText.length
+      });
+    }
 
-        const mark = document.createElement('mark');
-        mark.className = 'user-highlight';
-        mark.setAttribute('data-note-id', noteId);
-        mark.title = 'Click to view note';
+    // Match exact or normalized
+    let matchIndex = fullText.indexOf(target);
+    let matchLength = target.length;
 
-        try {
-          range.surroundContents(mark);
-        } catch (e) {
-          // In case selection crosses boundary
+    if (matchIndex === -1) {
+      try {
+        const escaped = target.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\s+/g, '\\s+');
+        const regex = new RegExp(escaped);
+        const m = fullText.match(regex);
+        if (m) {
+          matchIndex = m.index;
+          matchLength = m[0].length;
         }
-        break; // Highlight first match per note
+      } catch (err) {}
+    }
+
+    if (matchIndex === -1) return;
+
+    const matchEnd = matchIndex + matchLength;
+    let startNode = null, startOffset = 0;
+    let endNode = null, endOffset = 0;
+
+    for (const item of textNodes) {
+      if (!startNode && matchIndex >= item.start && matchIndex < item.end) {
+        startNode = item.node;
+        startOffset = matchIndex - item.start;
+      }
+      if (matchEnd > item.start && matchEnd <= item.end) {
+        endNode = item.node;
+        endOffset = matchEnd - item.start;
+        break;
       }
     }
+
+    if (!startNode || !endNode) return;
+
+    try {
+      const range = document.createRange();
+      range.setStart(startNode, startOffset);
+      range.setEnd(endNode, endOffset);
+
+      const mark = document.createElement('mark');
+      mark.className = 'user-highlight';
+      mark.setAttribute('data-note-id', noteId);
+      mark.title = 'Click to view note';
+
+      const extracted = range.extractContents();
+      mark.appendChild(extracted);
+      range.insertNode(mark);
+    } catch (err) {
+      console.warn('Highlight insertion failed:', err);
+    }
   }
+
 
   // -------------------------------------------------------------
   // 10. Permanent Storage & File Export / Import

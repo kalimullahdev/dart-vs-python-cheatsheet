@@ -635,10 +635,37 @@ body {
   user-select: none;
 }
 
-[data-theme="light"] .selection-tooltip {
-  background-color: #0f172a;
+/* Selection styling */
+::selection {
+  background-color: rgba(59, 130, 246, 0.35);
   color: #ffffff;
-  border-color: #1e293b;
+}
+
+[data-theme="light"] ::selection {
+  background-color: rgba(250, 204, 21, 0.45);
+  color: #0f172a;
+}
+
+/* Floating Tooltip */
+.selection-tooltip {
+  position: absolute;
+  z-index: 150;
+  display: none;
+  background: linear-gradient(135deg, #1d4ed8, #2563eb);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 6px;
+  padding: 0.35rem 0.7rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+  transform: translate(-50%, -100%);
+  margin-top: -8px;
+  align-items: center;
+  gap: 0.35rem;
+  user-select: none;
+  transition: transform 0.1s ease;
 }
 
 .selection-tooltip::after {
@@ -649,31 +676,29 @@ body {
   transform: translateX(-50%);
   border-width: 5px;
   border-style: solid;
-  border-color: #1e293b transparent transparent transparent;
-}
-
-[data-theme="light"] .selection-tooltip::after {
-  border-color: #0f172a transparent transparent transparent;
+  border-color: #2563eb transparent transparent transparent;
 }
 
 .selection-tooltip:hover {
-  background-color: #2563eb;
-  border-color: #2563eb;
+  background: linear-gradient(135deg, #1e40af, #1d4ed8);
+  transform: translate(-50%, -105%);
 }
 
 .selection-tooltip:hover::after {
-  border-top-color: #2563eb;
+  border-top-color: #1d4ed8;
 }
 
-/* User Text Highlight (High Contrast for Dark and Light Themes) */
+/* User Text Highlight (Glowing clean aesthetic in Dark & Light) */
 mark.user-highlight {
-  background-color: #382403;
-  color: #fffbeb !important;
+  background-color: rgba(234, 179, 8, 0.22);
+  color: #fef08a !important;
+  border: 1px solid rgba(250, 204, 21, 0.45);
   border-bottom: 2px solid #facc15;
-  border-radius: 3px;
-  padding: 1px 4px;
+  border-radius: 4px;
+  padding: 1px 5px;
+  margin: 0 1px;
   font-weight: 600;
-  box-shadow: 0 0 0 1px rgba(250, 204, 21, 0.35);
+  box-shadow: 0 0 8px rgba(234, 179, 8, 0.15);
   cursor: pointer;
   transition: all 0.15s ease;
   display: inline;
@@ -681,20 +706,27 @@ mark.user-highlight {
 
 mark.user-highlight,
 mark.user-highlight * {
-  color: #fffbeb !important;
-  text-shadow: none !important;
+  color: #fef08a !important;
+  text-shadow: 0 0 1px rgba(250, 204, 21, 0.2) !important;
 }
 
 mark.user-highlight:hover {
-  background-color: #451a03;
-  box-shadow: 0 0 0 2px #facc15;
+  background-color: rgba(234, 179, 8, 0.35);
+  border-color: #facc15;
+  box-shadow: 0 0 12px rgba(250, 204, 21, 0.3);
   color: #ffffff !important;
 }
 
+mark.user-highlight:hover * {
+  color: #ffffff !important;
+}
+
+/* Light Theme Highlight (Looks good, preserved & enhanced) */
 [data-theme="light"] mark.user-highlight {
   background-color: #fef08a !important;
+  border: 1px solid #eab308;
   border-bottom: 2px solid #ca8a04;
-  box-shadow: 0 0 0 1px rgba(202, 138, 4, 0.35);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
 [data-theme="light"] mark.user-highlight,
@@ -705,9 +737,15 @@ mark.user-highlight:hover {
 
 [data-theme="light"] mark.user-highlight:hover {
   background-color: #fde047 !important;
-  box-shadow: 0 0 0 2px #ca8a04;
+  border-color: #ca8a04;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.12);
   color: #000000 !important;
 }
+
+[data-theme="light"] mark.user-highlight:hover * {
+  color: #000000 !important;
+}
+
 
 /* ==========================================================================
    Slide-out Side Notes Drawer
