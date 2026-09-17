@@ -987,6 +987,11 @@ mark.user-highlight:hover * {
   background-color: var(--bg-card);
 }
 
+.note-action-btn.edit-btn:hover {
+  color: var(--color-primary);
+  border-color: rgba(59, 130, 246, 0.4);
+}
+
 .note-action-btn.delete:hover {
   color: #ef4444;
   border-color: rgba(239, 68, 68, 0.4);
@@ -1177,6 +1182,40 @@ mark.user-highlight:hover * {
   border-top-color: #f1f5f9;
 }
 
+.popover-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.popover-edit-btn {
+  background: transparent;
+  border: 1px solid rgba(59, 130, 246, 0.4);
+  color: #60a5fa;
+  font-size: 0.7rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0.12rem 0.45rem;
+  border-radius: 4px;
+  transition: all 0.15s ease;
+}
+
+.popover-edit-btn:hover {
+  color: #ffffff;
+  background-color: #2563eb;
+  border-color: #2563eb;
+}
+
+[data-theme="light"] .popover-edit-btn {
+  color: #2563eb;
+  border-color: rgba(37, 99, 235, 0.4);
+}
+
+[data-theme="light"] .popover-edit-btn:hover {
+  color: #ffffff;
+  background-color: #2563eb;
+}
+
 .popover-delete-btn {
   background: transparent;
   border: none;
@@ -1190,6 +1229,24 @@ mark.user-highlight:hover * {
 .popover-delete-btn:hover {
   color: #ef4444;
   background-color: rgba(239, 68, 68, 0.1);
+}
+
+.cancel-edit-btn {
+  background: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.cancel-edit-btn:hover {
+  background-color: var(--bg-card);
+  color: var(--text-main);
+  border-color: var(--text-muted);
 }
 
 /* ==========================================================================

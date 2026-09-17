@@ -119,7 +119,10 @@
 
     <div class="popover-footer">
       <span class="popover-time" id="popover-time"></span>
-      <button class="popover-delete-btn" id="popover-delete-btn" type="button">Delete</button>
+      <div class="popover-actions">
+        <button class="popover-edit-btn" id="popover-edit-btn" type="button">✏️ Edit</button>
+        <button class="popover-delete-btn" id="popover-delete-btn" type="button">Delete</button>
+      </div>
     </div>
   </div>
 
@@ -297,7 +300,10 @@
           </div>
         </div>
         
-        <button id="save-note-btn" class="save-note-btn" type="button" style="margin-top: 0.5rem;">Save Note</button>
+        <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
+          <button id="save-note-btn" class="save-note-btn" type="button" style="flex: 1;">Save Note</button>
+          <button id="cancel-edit-btn" class="cancel-edit-btn" type="button" style="display: none;">Cancel Edit</button>
+        </div>
       </div>
 
       <!-- Notes List -->

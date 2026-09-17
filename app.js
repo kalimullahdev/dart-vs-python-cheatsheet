@@ -45,6 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const htmlCodeInput = document.getElementById('html-code-input');
   const htmlPreviewFrame = document.getElementById('html-preview-frame');
   const saveNoteBtn = document.getElementById('save-note-btn');
+  const cancelEditBtn = document.getElementById('cancel-edit-btn');
   const notesList = document.getElementById('notes-list');
   const exportJsonBtn = document.getElementById('export-json-btn');
   const exportMdBtn = document.getElementById('export-md-btn');
@@ -58,8 +59,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const popoverPreviewContainer = document.getElementById('popover-preview-container');
   const popoverIframe = document.getElementById('popover-iframe');
   const popoverTime = document.getElementById('popover-time');
+  const popoverEditBtn = document.getElementById('popover-edit-btn');
   const popoverDeleteBtn = document.getElementById('popover-delete-btn');
   let activePopoverNoteId = null;
+  let editingNoteId = null;
 
   let activeCategory = 'all';
   let isStackedView = localStorage.getItem('cheat_view') === 'stacked';
@@ -454,6 +457,9 @@ document.addEventListener('DOMContentLoaded', () => {
   function closeNotesDrawer() {
     notesDrawer.classList.remove('open');
     drawerBackdrop.classList.remove('open');
+    if (editingNoteId) {
+      resetEditState();
+    }
     clearPendingQuote();
   }
 
@@ -707,7 +713,79 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Save Note
+  // Edit Note Support
+  function startEditingNote(note) {
+    if (!note) return;
+    editingNoteId = note.id;
+    openNotesDrawer();
+
+    if (note.quote) {
+      quotePreviewBox.style.display = 'flex';
+      quotePreviewText.textContent = `"${note.quote.length > 120 ? note.quote.substring(0, 120) + '...' : note.quote}"`;
+      pendingQuote = note.quote;
+      pendingCardId = note.cardId || null;
+      pendingCardTitle = note.cardTitle || null;
+    } else {
+      clearPendingQuote();
+    }
+
+    if (note.isHtml) {
+      currentNoteMode = 'html';
+      tabHtmlMode.classList.add('active');
+      tabTextMode.classList.remove('active');
+      if (textEditorContainer) textEditorContainer.style.display = 'none';
+      if (htmlEditorContainer) htmlEditorContainer.style.display = 'block';
+      notesDrawer.classList.add('expanded-html');
+      
+      if (richEditorCanvas) richEditorCanvas.innerHTML = note.content;
+      if (htmlCodeInput) htmlCodeInput.value = note.content;
+      if (htmlPreviewFrame) htmlPreviewFrame.srcdoc = formatHtmlDocument(note.content);
+      updateRichStats();
+      if (richEditorCanvas) richEditorCanvas.focus();
+    } else {
+      currentNoteMode = 'text';
+      tabTextMode.classList.add('active');
+      tabHtmlMode.classList.remove('active');
+      if (textEditorContainer) textEditorContainer.style.display = 'block';
+      if (htmlEditorContainer) htmlEditorContainer.style.display = 'none';
+      notesDrawer.classList.remove('expanded-html');
+
+      if (noteInput) {
+        noteInput.value = note.content;
+        noteInput.focus();
+      }
+    }
+
+    saveNoteBtn.textContent = 'Update Note';
+    if (cancelEditBtn) cancelEditBtn.style.display = 'block';
+
+    const drawerBody = notesDrawer.querySelector('.drawer-body');
+    if (drawerBody) {
+      drawerBody.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
+
+  function resetEditState() {
+    editingNoteId = null;
+    saveNoteBtn.textContent = 'Save Note';
+    if (cancelEditBtn) cancelEditBtn.style.display = 'none';
+
+    if (noteInput) noteInput.value = '';
+    if (htmlCodeInput) htmlCodeInput.value = '';
+    if (richEditorCanvas) richEditorCanvas.innerHTML = '';
+    if (htmlPreviewFrame) htmlPreviewFrame.srcdoc = formatHtmlDocument('');
+    clearPendingQuote();
+    updateRichStats();
+  }
+
+  if (cancelEditBtn) {
+    cancelEditBtn.addEventListener('click', () => {
+      resetEditState();
+      showToast('Edit cancelled');
+    });
+  }
+
+  // Save Note / Update Note
   saveNoteBtn.addEventListener('click', () => {
     let content = '';
     const isHtmlMode = currentNoteMode === 'html';
@@ -728,6 +806,21 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
+    if (editingNoteId) {
+      const idx = userNotes.findIndex(n => n.id === editingNoteId);
+      if (idx !== -1) {
+        userNotes[idx].content = content;
+        userNotes[idx].isHtml = isHtmlMode;
+        userNotes[idx].updatedAt = new Date().toISOString();
+        saveNotes(userNotes);
+        renderNotesList();
+        applyStoredHighlights();
+        resetEditState();
+        showToast('Comment updated successfully!');
+        return;
+      }
+    }
+
     const newNote = {
       id: 'note_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
       cardId: pendingCardId || null,
@@ -740,16 +833,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     userNotes.unshift(newNote);
     saveNotes(userNotes);
-
-    if (isHtmlMode) {
-      if (htmlCodeInput) htmlCodeInput.value = '';
-      if (richEditorCanvas) richEditorCanvas.innerHTML = '';
-      if (htmlPreviewFrame) htmlPreviewFrame.srcdoc = formatHtmlDocument('');
-    } else {
-      noteInput.value = '';
-    }
-
-    clearPendingQuote();
+    resetEditState();
     renderNotesList();
     applyStoredHighlights();
     showToast(isHtmlMode ? 'HTML note saved permanently!' : 'Note saved permanently!');
@@ -812,13 +896,14 @@ document.addEventListener('DOMContentLoaded', () => {
           ${contentHtml}
           <div class="saved-note-actions">
             ${note.cardId ? `<button class="note-action-btn jump-btn" data-card-id="${escapeAttr(note.cardId)}">Go to topic</button>` : ''}
+            <button class="note-action-btn edit-btn" data-edit-id="${note.id}">Edit</button>
             <button class="note-action-btn delete" data-delete-id="${note.id}">Delete</button>
           </div>
         </div>
       `;
     }).join('');
 
-    // Attach jump & delete actions
+    // Attach jump, edit & delete actions
     notesList.querySelectorAll('.jump-btn, .saved-note-card-title').forEach(btn => {
       btn.addEventListener('click', () => {
         const targetCardId = btn.getAttribute('data-card-id');
@@ -831,6 +916,16 @@ document.addEventListener('DOMContentLoaded', () => {
             cardEl.style.outline = '2px solid #3b82f6';
             setTimeout(() => { cardEl.style.outline = 'none'; }, 2000);
           }
+        }
+      });
+    });
+
+    notesList.querySelectorAll('.edit-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const idToEdit = btn.getAttribute('data-edit-id');
+        const note = userNotes.find(n => n.id === idToEdit);
+        if (note) {
+          startEditingNote(note);
         }
       });
     });
@@ -1236,6 +1331,18 @@ document.addEventListener('DOMContentLoaded', () => {
     popoverCloseBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       hideCommentPopover();
+    });
+  }
+
+  if (popoverEditBtn) {
+    popoverEditBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (!activePopoverNoteId) return;
+      const note = userNotes.find(n => n.id === activePopoverNoteId);
+      hideCommentPopover();
+      if (note) {
+        startEditingNote(note);
+      }
     });
   }
 
