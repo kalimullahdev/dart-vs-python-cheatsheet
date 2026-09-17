@@ -156,7 +156,7 @@
         <!-- Format Mode Tabs -->
         <div class="note-type-tabs">
           <button id="tab-text-mode" class="tab-btn active" type="button">Plain Text</button>
-          <button id="tab-html-mode" class="tab-btn" type="button">HTML (Code &amp; Preview)</button>
+          <button id="tab-html-mode" class="tab-btn" type="button">HTML (Rich Text, Code &amp; Preview)</button>
         </div>
 
         <!-- Plain Text Editor -->
@@ -168,20 +168,53 @@
           ></textarea>
         </div>
 
-        <!-- HTML Split View Editor (Side-by-Side: Code & Live Preview) -->
+        <!-- HTML 3-Section Editor (Rich Text WYSIWYG + Code + Live Preview) -->
         <div id="html-editor-container" style="display: none;">
-          <div class="html-split-container">
+          <div class="html-3split-container">
+            <!-- Section 1: Rich Text Editor -->
+            <div class="rich-editor-pane">
+              <div class="split-pane-label">
+                <span>📝 1. Rich Text Editor</span>
+              </div>
+              <div class="rich-toolbar" id="rich-toolbar">
+                <button type="button" class="rich-btn" data-cmd="bold" title="Bold (Ctrl+B)"><b>B</b></button>
+                <button type="button" class="rich-btn" data-cmd="italic" title="Italic (Ctrl+I)"><i>I</i></button>
+                <button type="button" class="rich-btn" data-cmd="underline" title="Underline (Ctrl+U)"><u>U</u></button>
+                <button type="button" class="rich-btn" data-cmd="formatBlock" data-val="h2" title="Heading 2">H2</button>
+                <button type="button" class="rich-btn" data-cmd="formatBlock" data-val="h3" title="Heading 3">H3</button>
+                <button type="button" class="rich-btn" data-cmd="insertUnorderedList" title="Bullet list">• List</button>
+                <button type="button" class="rich-btn" data-cmd="insertOrderedList" title="Numbered list">1. List</button>
+                <button type="button" class="rich-btn" id="rich-code-btn" title="Inline code">&lt;/&gt;</button>
+                <button type="button" class="rich-btn" id="rich-link-btn" title="Insert link">🔗 Link</button>
+                <button type="button" class="rich-btn" data-cmd="removeFormat" title="Clear formatting">🧹 Clear</button>
+              </div>
+              <div 
+                id="rich-editor-canvas" 
+                class="rich-editor-canvas" 
+                contenteditable="true" 
+                spellcheck="false" 
+                placeholder="Type and format with the toolbar buttons above..."
+              ></div>
+            </div>
+
+            <!-- Section 2: HTML Code Editor -->
             <div class="html-editor-pane">
-              <div class="split-pane-label">HTML Code</div>
+              <div class="split-pane-label">
+                <span>💻 2. HTML Code</span>
+              </div>
               <textarea 
                 id="html-code-input" 
                 class="html-textarea" 
-                placeholder="Write full HTML code here, e.g.:&#10;&lt;div style=&quot;padding:8px; background:#eff6ff; border-radius:6px; color:#1e40af;&quot;&gt;&#10;  &lt;h4 style=&quot;margin:0 0 4px;&quot;&gt;Note Title&lt;/h4&gt;&#10;  &lt;p style=&quot;margin:0;&quot;&gt;Custom styled note...&lt;/p&gt;&#10;&lt;/div&gt;"
+                placeholder="HTML markup will sync here automatically or you can write raw tags..."
                 spellcheck="false"
               ></textarea>
             </div>
+
+            <!-- Section 3: Live Preview -->
             <div class="html-preview-pane">
-              <div class="split-pane-label">Live Preview</div>
+              <div class="split-pane-label">
+                <span>👁️ 3. Live Preview</span>
+              </div>
               <iframe id="html-preview-frame" class="html-preview-frame" sandbox="allow-same-origin" title="Live HTML Preview"></iframe>
             </div>
           </div>

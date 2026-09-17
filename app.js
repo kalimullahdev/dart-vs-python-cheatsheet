@@ -26,6 +26,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const tabHtmlMode = document.getElementById('tab-html-mode');
   const textEditorContainer = document.getElementById('text-editor-container');
   const htmlEditorContainer = document.getElementById('html-editor-container');
+  const richToolbar = document.getElementById('rich-toolbar');
+  const richEditorCanvas = document.getElementById('rich-editor-canvas');
+  const richCodeBtn = document.getElementById('rich-code-btn');
+  const richLinkBtn = document.getElementById('rich-link-btn');
   const noteInput = document.getElementById('note-input');
   const htmlCodeInput = document.getElementById('html-code-input');
   const htmlPreviewFrame = document.getElementById('html-preview-frame');
@@ -427,7 +431,11 @@ document.addEventListener('DOMContentLoaded', () => {
       pendingCardTitle = cardTitle;
     }
     if (currentNoteMode === 'html') {
-      htmlCodeInput.focus();
+      if (richEditorCanvas) {
+        richEditorCanvas.focus();
+      } else if (htmlCodeInput) {
+        htmlCodeInput.focus();
+      }
     } else {
       noteInput.focus();
     }
@@ -451,6 +459,93 @@ document.addEventListener('DOMContentLoaded', () => {
     quotePreviewText.textContent = '';
   }
 
+  // -------------------------------------------------------------
+  // 3-Section HTML Editor Synchronization & Rich Toolbar
+  // -------------------------------------------------------------
+  let isSyncing = false;
+
+  function syncFromRichText() {
+    if (isSyncing || !richEditorCanvas || !htmlCodeInput) return;
+    isSyncing = true;
+    const html = richEditorCanvas.innerHTML;
+    htmlCodeInput.value = html;
+    if (htmlPreviewFrame) {
+      htmlPreviewFrame.srcdoc = formatHtmlDocument(html);
+    }
+    isSyncing = false;
+  }
+
+  function syncFromHtmlCode() {
+    if (isSyncing || !richEditorCanvas || !htmlCodeInput) return;
+    isSyncing = true;
+    const html = htmlCodeInput.value;
+    richEditorCanvas.innerHTML = html;
+    if (htmlPreviewFrame) {
+      htmlPreviewFrame.srcdoc = formatHtmlDocument(html);
+    }
+    isSyncing = false;
+  }
+
+  // Rich Text Toolbar Actions
+  if (richToolbar && richEditorCanvas) {
+    richToolbar.querySelectorAll('button[data-cmd]').forEach(btn => {
+      btn.addEventListener('mousedown', (e) => e.preventDefault());
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        richEditorCanvas.focus();
+        const cmd = btn.getAttribute('data-cmd');
+        const val = btn.getAttribute('data-val') || null;
+        document.execCommand(cmd, false, val);
+        syncFromRichText();
+      });
+    });
+
+    if (richCodeBtn) {
+      richCodeBtn.addEventListener('mousedown', (e) => e.preventDefault());
+      richCodeBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        richEditorCanvas.focus();
+        const selection = window.getSelection();
+        if (selection && !selection.isCollapsed && selection.rangeCount > 0) {
+          const range = selection.getRangeAt(0);
+          const selectedText = range.toString();
+          const codeEl = document.createElement('code');
+          codeEl.textContent = selectedText;
+          range.deleteContents();
+          range.insertNode(codeEl);
+          range.selectNodeContents(codeEl);
+        } else {
+          document.execCommand('insertHTML', false, '<code>code</code>');
+        }
+        syncFromRichText();
+      });
+    }
+
+    if (richLinkBtn) {
+      richLinkBtn.addEventListener('mousedown', (e) => e.preventDefault());
+      richLinkBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        richEditorCanvas.focus();
+        const url = prompt('Enter link URL (e.g. https://...):', 'https://');
+        if (url && url.trim()) {
+          document.execCommand('createLink', false, url.trim());
+          syncFromRichText();
+        }
+      });
+    }
+
+    richEditorCanvas.addEventListener('input', syncFromRichText);
+    richEditorCanvas.addEventListener('keyup', (e) => {
+      if (['Enter', 'Backspace', 'Delete'].includes(e.key)) {
+        syncFromRichText();
+      }
+    });
+  }
+
+  if (htmlCodeInput) {
+    htmlCodeInput.addEventListener('input', syncFromHtmlCode);
+  }
+
   // HTML / Plain Text Mode Tabs
   if (tabTextMode && tabHtmlMode) {
     tabTextMode.addEventListener('click', () => {
@@ -470,19 +565,19 @@ document.addEventListener('DOMContentLoaded', () => {
       if (textEditorContainer) textEditorContainer.style.display = 'none';
       if (htmlEditorContainer) htmlEditorContainer.style.display = 'block';
       notesDrawer.classList.add('expanded-html');
-      updateHtmlPreview();
-      htmlCodeInput.focus();
+      
+      // If rich editor is empty but plain text input has text, transfer it
+      if (richEditorCanvas && !richEditorCanvas.innerHTML.trim() && noteInput.value.trim()) {
+        richEditorCanvas.innerHTML = '<p>' + escapeHtml(noteInput.value.trim()) + '</p>';
+        syncFromRichText();
+      } else {
+        syncFromRichText();
+      }
+
+      if (richEditorCanvas) {
+        richEditorCanvas.focus();
+      }
     });
-  }
-
-  if (htmlCodeInput) {
-    htmlCodeInput.addEventListener('input', updateHtmlPreview);
-  }
-
-  function updateHtmlPreview() {
-    if (htmlPreviewFrame && htmlCodeInput) {
-      htmlPreviewFrame.srcdoc = formatHtmlDocument(htmlCodeInput.value);
-    }
   }
 
   // Save Note
@@ -491,10 +586,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const isHtmlMode = currentNoteMode === 'html';
 
     if (isHtmlMode) {
-      content = htmlCodeInput.value.trim();
-      if (!content) {
-        showToast('Please enter HTML code!');
-        htmlCodeInput.focus();
+      content = (htmlCodeInput ? htmlCodeInput.value.trim() : '') || (richEditorCanvas ? richEditorCanvas.innerHTML.trim() : '');
+      if (!content || content === '<br>' || content === '<p><br></p>') {
+        showToast('Please enter note content in the editor!');
+        if (richEditorCanvas) richEditorCanvas.focus();
         return;
       }
     } else {
@@ -520,8 +615,9 @@ document.addEventListener('DOMContentLoaded', () => {
     saveNotes(userNotes);
 
     if (isHtmlMode) {
-      htmlCodeInput.value = '';
-      updateHtmlPreview();
+      if (htmlCodeInput) htmlCodeInput.value = '';
+      if (richEditorCanvas) richEditorCanvas.innerHTML = '';
+      if (htmlPreviewFrame) htmlPreviewFrame.srcdoc = formatHtmlDocument('');
     } else {
       noteInput.value = '';
     }

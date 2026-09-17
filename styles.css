@@ -1193,11 +1193,11 @@ mark.user-highlight:hover * {
 }
 
 /* ==========================================================================
-   HTML Editor (Split View: Code + Live Preview)
+   HTML Editor (3 Sections: Rich Text WYSIWYG + HTML Code + Live Preview)
    ========================================================================== */
 .notes-drawer.expanded-html {
-  width: 640px;
-  max-width: 95vw;
+  width: 900px;
+  max-width: 96vw;
 }
 
 .note-type-tabs {
@@ -1228,24 +1228,24 @@ mark.user-highlight:hover * {
   color: #ffffff;
 }
 
-.html-split-container {
+.html-3split-container {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, 1fr);
   gap: 0.65rem;
   background-color: var(--bg-card);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-sm);
   padding: 0.5rem;
-  min-height: 180px;
+  min-height: 220px;
 }
 
-@media (max-width: 600px) {
-  .html-split-container {
+@media (max-width: 860px) {
+  .html-3split-container {
     grid-template-columns: 1fr;
   }
 }
 
-.html-editor-pane, .html-preview-pane {
+.html-editor-pane, .html-preview-pane, .rich-editor-pane {
   display: flex;
   flex-direction: column;
   min-width: 0;
@@ -1258,18 +1258,111 @@ mark.user-highlight:hover * {
   color: var(--text-muted);
   letter-spacing: 0.05em;
   margin-bottom: 0.3rem;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+/* Rich Text Editor Toolbar & Canvas */
+.rich-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  background-color: var(--bg-code);
+  border: 1px solid var(--border-color);
+  border-radius: 4px 4px 0 0;
+  padding: 3px 4px;
+  border-bottom: none;
+}
+
+.rich-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  color: #cbd5e1;
+  border-radius: 3px;
+  font-size: 0.72rem;
+  padding: 2px 6px;
+  cursor: pointer;
+  line-height: 1.2;
+  font-weight: 600;
+  transition: all 0.1s ease;
+  user-select: none;
+}
+
+.rich-btn:hover {
+  background-color: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+}
+
+.rich-btn:active {
+  background-color: #2563eb;
+  color: #ffffff;
+}
+
+.rich-editor-canvas {
+  width: 100%;
+  flex: 1;
+  min-height: 155px;
+  max-height: 250px;
+  background-color: var(--bg-body);
+  border: 1px solid var(--border-color);
+  border-radius: 0 0 4px 4px;
+  color: var(--text-main);
+  padding: 0.6rem;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  overflow-y: auto;
+  outline: none;
+  word-break: break-word;
+}
+
+.rich-editor-canvas:focus {
+  border-color: #3b82f6;
+}
+
+.rich-editor-canvas:empty:before {
+  content: attr(placeholder);
+  color: var(--text-muted);
+  pointer-events: none;
+  display: block;
+}
+
+.rich-editor-canvas h1, .rich-editor-canvas h2, .rich-editor-canvas h3 {
+  margin: 0.2rem 0;
+  color: var(--text-main);
+  font-size: 0.95rem;
+}
+
+.rich-editor-canvas ul, .rich-editor-canvas ol {
+  padding-left: 1.2rem;
+  margin: 0.3rem 0;
+}
+
+.rich-editor-canvas code {
+  font-family: var(--font-mono);
+  background-color: var(--bg-code);
+  color: #38bdf8;
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-size: 0.74rem;
+}
+
+.rich-editor-canvas a {
+  color: #3b82f6;
+  text-decoration: underline;
 }
 
 .html-textarea {
   width: 100%;
   flex: 1;
-  min-height: 140px;
+  min-height: 185px;
+  max-height: 280px;
   background-color: var(--bg-code);
   border: 1px solid var(--border-color);
   border-radius: 4px;
   color: #f8fafc;
   font-family: var(--font-mono);
-  font-size: 0.78rem;
+  font-size: 0.76rem;
   padding: 0.5rem;
   outline: none;
   resize: vertical;
@@ -1283,7 +1376,7 @@ mark.user-highlight:hover * {
 .html-preview-frame {
   width: 100%;
   flex: 1;
-  min-height: 140px;
+  min-height: 185px;
   background-color: #ffffff;
   border: 1px solid var(--border-color);
   border-radius: 4px;
