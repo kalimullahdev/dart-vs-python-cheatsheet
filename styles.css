@@ -665,24 +665,48 @@ body {
   border-top-color: #2563eb;
 }
 
-/* User Text Highlight */
+/* User Text Highlight (High Contrast for Dark and Light Themes) */
 mark.user-highlight {
-  background-color: rgba(254, 240, 138, 0.35);
-  color: inherit;
-  border-bottom: 2px solid #eab308;
-  border-radius: 2px;
-  padding: 0 2px;
+  background-color: #382403;
+  color: #fffbeb !important;
+  border-bottom: 2px solid #facc15;
+  border-radius: 3px;
+  padding: 1px 4px;
+  font-weight: 600;
+  box-shadow: 0 0 0 1px rgba(250, 204, 21, 0.35);
   cursor: pointer;
-  transition: background-color 0.15s ease;
+  transition: all 0.15s ease;
+  display: inline;
+}
+
+mark.user-highlight,
+mark.user-highlight * {
+  color: #fffbeb !important;
+  text-shadow: none !important;
 }
 
 mark.user-highlight:hover {
-  background-color: rgba(254, 240, 138, 0.6);
+  background-color: #451a03;
+  box-shadow: 0 0 0 2px #facc15;
+  color: #ffffff !important;
 }
 
 [data-theme="light"] mark.user-highlight {
-  background-color: rgba(254, 240, 138, 0.6);
-  border-bottom-color: #ca8a04;
+  background-color: #fef08a !important;
+  border-bottom: 2px solid #ca8a04;
+  box-shadow: 0 0 0 1px rgba(202, 138, 4, 0.35);
+}
+
+[data-theme="light"] mark.user-highlight,
+[data-theme="light"] mark.user-highlight * {
+  color: #0f172a !important;
+  text-shadow: none !important;
+}
+
+[data-theme="light"] mark.user-highlight:hover {
+  background-color: #fde047 !important;
+  box-shadow: 0 0 0 2px #ca8a04;
+  color: #000000 !important;
 }
 
 /* ==========================================================================
