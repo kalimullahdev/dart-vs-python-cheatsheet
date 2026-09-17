@@ -29,6 +29,14 @@ document.addEventListener('DOMContentLoaded', () => {
   const exportMdBtn = document.getElementById('export-md-btn');
   const importFileInput = document.getElementById('import-file-input');
 
+  // Simple Popover Elements
+  const commentPopover = document.getElementById('comment-popover');
+  const popoverCloseBtn = document.getElementById('popover-close-btn');
+  const popoverText = document.getElementById('popover-text');
+  const popoverTime = document.getElementById('popover-time');
+  const popoverDeleteBtn = document.getElementById('popover-delete-btn');
+  let activePopoverNoteId = null;
+
   let activeCategory = 'all';
   let isStackedView = localStorage.getItem('cheat_view') === 'stacked';
 
@@ -546,20 +554,15 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
-    // Attach click listener on highlights to open notes
+    // Attach click listener on highlights to show simple comment popover directly above text
     document.querySelectorAll('mark.user-highlight').forEach(mark => {
       mark.onclick = (e) => {
         e.stopPropagation();
         const noteId = mark.getAttribute('data-note-id');
-        openNotesDrawer();
-        setTimeout(() => {
-          const noteItem = notesList.querySelector(`[data-note-id="${noteId}"]`);
-          if (noteItem) {
-            noteItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            noteItem.style.outline = '2px solid #eab308';
-            setTimeout(() => { noteItem.style.outline = 'none'; }, 2000);
-          }
-        }, 150);
+        const note = userNotes.find(n => n.id === noteId);
+        if (note) {
+          showCommentPopover(mark, note);
+        }
       };
     });
   }
@@ -786,6 +789,91 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!str) return '';
     return str.replace(/"/g, '&quot;');
   }
+
+
+  // -------------------------------------------------------------
+  // Simple Comment Popover (Shows directly above commented text)
+  // -------------------------------------------------------------
+  function showCommentPopover(mark, note) {
+    activePopoverNoteId = note.id;
+    popoverText.textContent = note.content;
+    const dateStr = new Date(note.createdAt).toLocaleString(undefined, {
+      month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+    });
+    popoverTime.textContent = dateStr;
+
+    // Position popover directly above the mark
+    const rect = mark.getBoundingClientRect();
+    const scrollX = window.scrollX || window.pageXOffset;
+    const scrollY = window.scrollY || window.pageYOffset;
+
+    let leftPos = rect.left + rect.width / 2 + scrollX;
+    let topPos = rect.top + scrollY;
+
+    commentPopover.style.left = leftPos + 'px';
+    commentPopover.style.top = topPos + 'px';
+    commentPopover.style.display = 'block';
+
+    // Prevent popover from going off-screen horizontally
+    const popoverRect = commentPopover.getBoundingClientRect();
+    if (popoverRect.left < 12) {
+      commentPopover.style.left = (12 + popoverRect.width / 2 + scrollX) + 'px';
+    } else if (popoverRect.right > window.innerWidth - 12) {
+      commentPopover.style.left = (window.innerWidth - 12 - popoverRect.width / 2 + scrollX) + 'px';
+    }
+  }
+
+  function hideCommentPopover() {
+    if (commentPopover) {
+      commentPopover.style.display = 'none';
+      activePopoverNoteId = null;
+    }
+  }
+
+  if (popoverCloseBtn) {
+    popoverCloseBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      hideCommentPopover();
+    });
+  }
+
+  if (popoverDeleteBtn) {
+    popoverDeleteBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (!activePopoverNoteId) return;
+      const idToDelete = activePopoverNoteId;
+      userNotes = userNotes.filter(n => n.id !== idToDelete);
+      saveNotes(userNotes);
+      renderNotesList();
+
+      // Unwrap mark element
+      document.querySelectorAll('mark.user-highlight[data-note-id="' + idToDelete + '"]').forEach(m => {
+        const parent = m.parentNode;
+        if (parent) {
+          while (m.firstChild) parent.insertBefore(m.firstChild, m);
+          parent.removeChild(m);
+        }
+      });
+
+      hideCommentPopover();
+      showToast('Comment deleted');
+    });
+  }
+
+  // Hide popover on outside click or Escape key
+  document.addEventListener('mousedown', (e) => {
+    if (commentPopover && commentPopover.style.display === 'block') {
+      if (!e.target.closest('#comment-popover') && !e.target.closest('mark.user-highlight')) {
+        hideCommentPopover();
+      }
+    }
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      hideCommentPopover();
+    }
+  });
 
   // Initialize
   renderCategoryPills();
