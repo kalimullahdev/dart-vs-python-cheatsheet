@@ -1193,11 +1193,11 @@ mark.user-highlight:hover * {
 }
 
 /* ==========================================================================
-   HTML Editor (3 Sections: Rich Text WYSIWYG + HTML Code + Live Preview)
+   HTML Editor (3 Full-Width Stacked Sections: 1. Rich Text, 2. Preview, 3. Code)
    ========================================================================== */
 .notes-drawer.expanded-html {
-  width: 900px;
-  max-width: 96vw;
+  width: 96vw;
+  max-width: 1100px;
 }
 
 .note-type-tabs {
@@ -1207,7 +1207,7 @@ mark.user-highlight:hover * {
   border-radius: var(--radius-sm);
   padding: 2px;
   gap: 2px;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.75rem;
 }
 
 .tab-btn {
@@ -1228,51 +1228,68 @@ mark.user-highlight:hover * {
   color: #ffffff;
 }
 
-.html-3split-container {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0.65rem;
+.html-stacked-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
   background-color: var(--bg-card);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-sm);
-  padding: 0.5rem;
-  min-height: 220px;
-}
-
-@media (max-width: 860px) {
-  .html-3split-container {
-    grid-template-columns: 1fr;
-  }
+  padding: 0.85rem;
+  width: 100%;
 }
 
 .html-editor-pane, .html-preview-pane, .rich-editor-pane {
   display: flex;
   flex-direction: column;
+  width: 100%;
   min-width: 0;
 }
 
 .split-pane-label {
-  font-size: 0.68rem;
+  font-size: 0.72rem;
   font-weight: 700;
   text-transform: uppercase;
-  color: var(--text-muted);
+  color: var(--text-main);
   letter-spacing: 0.05em;
-  margin-bottom: 0.3rem;
+  margin-bottom: 0.4rem;
   display: flex;
   align-items: center;
-  gap: 0.3rem;
+  justify-content: space-between;
 }
 
-/* Rich Text Editor Toolbar & Canvas */
+.pane-badge {
+  font-size: 0.65rem;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 10px;
+  background-color: rgba(59, 130, 246, 0.15);
+  color: #3b82f6;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+/* Comprehensive Rich Text Editor Toolbar */
 .rich-toolbar {
   display: flex;
   flex-wrap: wrap;
-  gap: 2px;
+  align-items: center;
+  gap: 3px;
   background-color: var(--bg-code);
   border: 1px solid var(--border-color);
-  border-radius: 4px 4px 0 0;
-  padding: 3px 4px;
+  border-radius: 6px 6px 0 0;
+  padding: 6px 8px;
   border-bottom: none;
+}
+
+.toolbar-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  background-color: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 4px;
+  padding: 2px;
 }
 
 .rich-btn {
@@ -1280,17 +1297,22 @@ mark.user-highlight:hover * {
   border: 1px solid transparent;
   color: #cbd5e1;
   border-radius: 3px;
-  font-size: 0.72rem;
-  padding: 2px 6px;
+  font-size: 0.74rem;
+  padding: 3px 6px;
   cursor: pointer;
   line-height: 1.2;
   font-weight: 600;
-  transition: all 0.1s ease;
+  transition: all 0.12s ease;
   user-select: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 24px;
 }
 
 .rich-btn:hover {
-  background-color: rgba(255, 255, 255, 0.12);
+  background-color: rgba(255, 255, 255, 0.14);
   color: #ffffff;
 }
 
@@ -1299,18 +1321,49 @@ mark.user-highlight:hover * {
   color: #ffffff;
 }
 
+.toolbar-select {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  color: #f1f5f9;
+  font-size: 0.72rem;
+  font-weight: 600;
+  border-radius: 3px;
+  padding: 2px 6px;
+  cursor: pointer;
+  outline: none;
+  height: 24px;
+}
+
+.toolbar-color-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.toolbar-color-wrap input[type="color"] {
+  position: absolute;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  cursor: pointer;
+}
+
+/* Rich Editor Canvas */
 .rich-editor-canvas {
   width: 100%;
-  flex: 1;
-  min-height: 155px;
-  max-height: 250px;
+  min-height: 220px;
+  max-height: 380px;
   background-color: var(--bg-body);
   border: 1px solid var(--border-color);
-  border-radius: 0 0 4px 4px;
+  border-radius: 0;
   color: var(--text-main);
-  padding: 0.6rem;
-  font-size: 0.8rem;
-  line-height: 1.45;
+  padding: 0.85rem;
+  font-size: 0.88rem;
+  line-height: 1.55;
   overflow-y: auto;
   outline: none;
   word-break: break-word;
@@ -1327,24 +1380,79 @@ mark.user-highlight:hover * {
   display: block;
 }
 
-.rich-editor-canvas h1, .rich-editor-canvas h2, .rich-editor-canvas h3 {
-  margin: 0.2rem 0;
-  color: var(--text-main);
-  font-size: 0.95rem;
+.editor-status-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: var(--bg-code);
+  border: 1px solid var(--border-color);
+  border-top: none;
+  border-radius: 0 0 6px 6px;
+  padding: 4px 10px;
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
 }
 
-.rich-editor-canvas ul, .rich-editor-canvas ol {
-  padding-left: 1.2rem;
-  margin: 0.3rem 0;
+/* Typography and Callouts inside Rich Canvas & Preview */
+.rich-editor-canvas h1, .rich-editor-canvas h2, .rich-editor-canvas h3, .rich-editor-canvas h4 {
+  margin: 0.4rem 0 0.25rem;
+  color: var(--text-main);
+  line-height: 1.3;
+}
+
+.rich-editor-canvas blockquote {
+  border-left: 3px solid #3b82f6;
+  padding: 4px 10px;
+  margin: 0.5rem 0;
+  background-color: rgba(59, 130, 246, 0.06);
+  border-radius: 0 4px 4px 0;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+.rich-editor-canvas pre {
+  background-color: var(--bg-code);
+  color: #f8fafc;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  overflow-x: auto;
+  margin: 0.5rem 0;
 }
 
 .rich-editor-canvas code {
   font-family: var(--font-mono);
   background-color: var(--bg-code);
   color: #38bdf8;
-  padding: 1px 4px;
+  padding: 1px 5px;
   border-radius: 3px;
-  font-size: 0.74rem;
+  font-size: 0.78rem;
+}
+
+.rich-editor-canvas table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.6rem 0;
+  font-size: 0.82rem;
+}
+
+.rich-editor-canvas table th, .rich-editor-canvas table td {
+  border: 1px solid var(--border-color);
+  padding: 6px 10px;
+  text-align: left;
+}
+
+.rich-editor-canvas table th {
+  background-color: rgba(59, 130, 246, 0.12);
+  font-weight: 700;
+}
+
+.rich-editor-canvas hr {
+  border: none;
+  border-top: 1px solid var(--border-color);
+  margin: 0.75rem 0;
 }
 
 .rich-editor-canvas a {
@@ -1352,83 +1460,77 @@ mark.user-highlight:hover * {
   text-decoration: underline;
 }
 
+/* Callout Boxes */
+.editor-callout {
+  padding: 8px 12px;
+  border-radius: 6px;
+  margin: 0.5rem 0;
+  font-size: 0.82rem;
+  border-left: 4px solid;
+}
+.editor-callout.info {
+  background-color: rgba(59, 130, 246, 0.1);
+  border-color: #3b82f6;
+}
+.editor-callout.warning {
+  background-color: rgba(245, 158, 11, 0.1);
+  border-color: #f59e0b;
+}
+.editor-callout.success {
+  background-color: rgba(16, 185, 129, 0.1);
+  border-color: #10b981;
+}
+.editor-callout.tip {
+  background-color: rgba(168, 85, 247, 0.1);
+  border-color: #a855f7;
+}
+
+/* Section 2: Live Preview Frame */
+.html-preview-frame {
+  width: 100%;
+  height: 220px;
+  background-color: #ffffff;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+}
+
+/* Section 3: HTML Code Textarea */
 .html-textarea {
   width: 100%;
-  flex: 1;
-  min-height: 185px;
-  max-height: 280px;
+  height: 180px;
   background-color: var(--bg-code);
   border: 1px solid var(--border-color);
-  border-radius: 4px;
+  border-radius: 6px;
   color: #f8fafc;
   font-family: var(--font-mono);
-  font-size: 0.76rem;
-  padding: 0.5rem;
+  font-size: 0.78rem;
+  padding: 0.65rem;
   outline: none;
   resize: vertical;
-  line-height: 1.4;
+  line-height: 1.45;
 }
 
 .html-textarea:focus {
   border-color: #3b82f6;
 }
 
-.html-preview-frame {
-  width: 100%;
-  flex: 1;
-  min-height: 185px;
-  background-color: #ffffff;
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
-}
-
-/* Popover HTML Split View */
+/* Popover HTML Mode (Preview Only on Clicked Text) */
 .comment-popover.popover-html-mode {
-  width: 540px;
+  width: 380px;
   max-width: 95vw;
 }
 
-.popover-view-tabs {
-  display: flex;
-  gap: 2px;
-  background-color: rgba(0, 0, 0, 0.2);
-  border-radius: 4px;
-  padding: 2px;
+.popover-preview-container {
+  width: 100%;
+  margin-bottom: 0.5rem;
 }
 
-.pop-tab {
-  background: transparent;
-  border: none;
-  color: var(--text-muted);
-  font-size: 0.65rem;
-  font-weight: 600;
-  padding: 0.15rem 0.4rem;
-  border-radius: 3px;
-  cursor: pointer;
-}
-
-.pop-tab.active {
-  background-color: #2563eb;
-  color: #ffffff;
-}
-
-.popover-html-split {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.6rem;
-  margin-bottom: 0.6rem;
-}
-
-@media (max-width: 580px) {
-  .popover-html-split {
-    grid-template-columns: 1fr;
-  }
-}
-
-.popover-split-col {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
+.popover-iframe {
+  width: 100%;
+  height: 180px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background-color: #ffffff;
 }
 
 .pane-mini-label {

@@ -112,16 +112,9 @@
     </div>
     <div class="popover-text" id="popover-text"></div>
 
-    <!-- HTML Split View (Code & Live Preview Side-by-Side) -->
-    <div id="popover-html-split" class="popover-html-split" style="display: none;">
-      <div class="popover-split-col">
-        <div class="pane-mini-label">HTML Code</div>
-        <pre class="popover-code-pre"><code id="popover-code-view" class="language-html"></code></pre>
-      </div>
-      <div class="popover-split-col">
-        <div class="pane-mini-label">Live Preview</div>
-        <iframe id="popover-iframe" class="popover-iframe" sandbox="allow-same-origin" title="Comment HTML Preview"></iframe>
-      </div>
+    <!-- HTML Preview Only (When viewing HTML comments) -->
+    <div id="popover-preview-container" class="popover-preview-container" style="display: none;">
+      <iframe id="popover-iframe" class="popover-iframe" sandbox="allow-same-origin" title="Comment HTML Preview"></iframe>
     </div>
 
     <div class="popover-footer">
@@ -168,54 +161,138 @@
           ></textarea>
         </div>
 
-        <!-- HTML 3-Section Editor (Rich Text WYSIWYG + Code + Live Preview) -->
+        <!-- HTML 3-Section Full-Width Editor (1. Rich Text, 2. Preview, 3. Code) -->
         <div id="html-editor-container" style="display: none;">
-          <div class="html-3split-container">
+          <div class="html-stacked-container">
             <!-- Section 1: Rich Text Editor -->
             <div class="rich-editor-pane">
               <div class="split-pane-label">
-                <span>📝 1. Rich Text Editor</span>
+                <span>📝 1. Rich Text Editor (Full Featured WYSIWYG)</span>
+                <span class="pane-badge">Visual Formatting Suite</span>
               </div>
               <div class="rich-toolbar" id="rich-toolbar">
-                <button type="button" class="rich-btn" data-cmd="bold" title="Bold (Ctrl+B)"><b>B</b></button>
-                <button type="button" class="rich-btn" data-cmd="italic" title="Italic (Ctrl+I)"><i>I</i></button>
-                <button type="button" class="rich-btn" data-cmd="underline" title="Underline (Ctrl+U)"><u>U</u></button>
-                <button type="button" class="rich-btn" data-cmd="formatBlock" data-val="h2" title="Heading 2">H2</button>
-                <button type="button" class="rich-btn" data-cmd="formatBlock" data-val="h3" title="Heading 3">H3</button>
-                <button type="button" class="rich-btn" data-cmd="insertUnorderedList" title="Bullet list">• List</button>
-                <button type="button" class="rich-btn" data-cmd="insertOrderedList" title="Numbered list">1. List</button>
-                <button type="button" class="rich-btn" id="rich-code-btn" title="Inline code">&lt;/&gt;</button>
-                <button type="button" class="rich-btn" id="rich-link-btn" title="Insert link">🔗 Link</button>
-                <button type="button" class="rich-btn" data-cmd="removeFormat" title="Clear formatting">🧹 Clear</button>
+                <!-- Group 1: Undo / Redo -->
+                <div class="toolbar-group">
+                  <button type="button" class="rich-btn" data-cmd="undo" title="Undo (Ctrl+Z)">↩️</button>
+                  <button type="button" class="rich-btn" data-cmd="redo" title="Redo (Ctrl+Y)">↪️</button>
+                </div>
+
+                <!-- Group 2: Headings & Hierarchy -->
+                <div class="toolbar-group">
+                  <select id="rich-format-block" class="toolbar-select" title="Paragraph / Heading Format">
+                    <option value="p">Paragraph</option>
+                    <option value="h1">Heading 1</option>
+                    <option value="h2">Heading 2</option>
+                    <option value="h3">Heading 3</option>
+                    <option value="h4">Heading 4</option>
+                    <option value="blockquote">Quote</option>
+                  </select>
+                </div>
+
+                <!-- Group 3: Text Styling -->
+                <div class="toolbar-group">
+                  <button type="button" class="rich-btn" data-cmd="bold" title="Bold (Ctrl+B)"><b>B</b></button>
+                  <button type="button" class="rich-btn" data-cmd="italic" title="Italic (Ctrl+I)"><i>I</i></button>
+                  <button type="button" class="rich-btn" data-cmd="underline" title="Underline (Ctrl+U)"><u>U</u></button>
+                  <button type="button" class="rich-btn" data-cmd="strikeThrough" title="Strikethrough"><s>S</s></button>
+                  <button type="button" class="rich-btn" data-cmd="subscript" title="Subscript">X₂</button>
+                  <button type="button" class="rich-btn" data-cmd="superscript" title="Superscript">X²</button>
+                </div>
+
+                <!-- Group 4: Colors -->
+                <div class="toolbar-group">
+                  <label class="toolbar-color-wrap rich-btn" title="Text Color">
+                    <span style="color: #ef4444; font-weight: 800;">A</span>
+                    <input type="color" id="rich-text-color" value="#ef4444">
+                  </label>
+                  <label class="toolbar-color-wrap rich-btn" title="Highlight Background Color">
+                    <span>🖍️</span>
+                    <input type="color" id="rich-bg-color" value="#fef08a">
+                  </label>
+                </div>
+
+                <!-- Group 5: Text Alignment -->
+                <div class="toolbar-group">
+                  <button type="button" class="rich-btn" data-cmd="justifyLeft" title="Align Left">⬅️</button>
+                  <button type="button" class="rich-btn" data-cmd="justifyCenter" title="Align Center">↔️</button>
+                  <button type="button" class="rich-btn" data-cmd="justifyRight" title="Align Right">➡️</button>
+                  <button type="button" class="rich-btn" data-cmd="justifyFull" title="Justify">🟰</button>
+                </div>
+
+                <!-- Group 6: Lists & Indent -->
+                <div class="toolbar-group">
+                  <button type="button" class="rich-btn" data-cmd="insertUnorderedList" title="Bullet List">• List</button>
+                  <button type="button" class="rich-btn" data-cmd="insertOrderedList" title="Numbered List">1. List</button>
+                  <button type="button" class="rich-btn" data-cmd="outdent" title="Decrease Indent">⇤ Outdent</button>
+                  <button type="button" class="rich-btn" data-cmd="indent" title="Increase Indent">⇥ Indent</button>
+                </div>
+
+                <!-- Group 7: Code Elements -->
+                <div class="toolbar-group">
+                  <button type="button" class="rich-btn" id="rich-code-btn" title="Inline Code">&lt;/&gt;</button>
+                  <button type="button" class="rich-btn" id="rich-code-block-btn" title="Code Block">{ } Code</button>
+                </div>
+
+                <!-- Group 8: Media, Link & Table -->
+                <div class="toolbar-group">
+                  <button type="button" class="rich-btn" id="rich-link-btn" title="Insert Link">🔗 Link</button>
+                  <button type="button" class="rich-btn" data-cmd="unlink" title="Remove Link">🔗❌</button>
+                  <button type="button" class="rich-btn" id="rich-image-btn" title="Insert Image">🖼️ Image</button>
+                  <button type="button" class="rich-btn" id="rich-table-btn" title="Insert 3x3 Table">📊 Table</button>
+                  <button type="button" class="rich-btn" data-cmd="insertHorizontalRule" title="Horizontal Divider Line">― Divider</button>
+                </div>
+
+                <!-- Group 9: Callout Alert Presets -->
+                <div class="toolbar-group">
+                  <button type="button" class="rich-btn" id="callout-info-btn" title="Insert Info Box">💡 Info</button>
+                  <button type="button" class="rich-btn" id="callout-warn-btn" title="Insert Warning Box">⚠️ Warning</button>
+                  <button type="button" class="rich-btn" id="callout-success-btn" title="Insert Success Box">✅ Success</button>
+                  <button type="button" class="rich-btn" id="callout-tip-btn" title="Insert Tip Box">🚀 Tip</button>
+                </div>
+
+                <!-- Group 10: Clear Format -->
+                <div class="toolbar-group">
+                  <button type="button" class="rich-btn" data-cmd="removeFormat" title="Clear Formatting">🧹 Clear</button>
+                </div>
               </div>
+
+              <!-- Contenteditable Canvas -->
               <div 
                 id="rich-editor-canvas" 
                 class="rich-editor-canvas" 
                 contenteditable="true" 
                 spellcheck="false" 
-                placeholder="Type and format with the toolbar buttons above..."
+                placeholder="Type and format rich content here with the toolbar above..."
               ></div>
+
+              <!-- Live Status Bar -->
+              <div class="editor-status-bar" id="editor-status-bar">
+                <span id="rich-stats-indicator">0 words &bull; 0 characters</span>
+                <span>Rich Text &bull; HTML5 Canvas</span>
+              </div>
             </div>
 
-            <!-- Section 2: HTML Code Editor -->
+            <!-- Section 2: Live Preview -->
+            <div class="html-preview-pane">
+              <div class="split-pane-label">
+                <span>👁️ 2. Live Preview (Real-time Rendered Output)</span>
+                <span class="pane-badge">Sandboxed Iframe</span>
+              </div>
+              <iframe id="html-preview-frame" class="html-preview-frame" sandbox="allow-same-origin" title="Live HTML Preview"></iframe>
+            </div>
+
+            <!-- Section 3: HTML Code Editor -->
             <div class="html-editor-pane">
               <div class="split-pane-label">
-                <span>💻 2. HTML Code</span>
+                <span>💻 3. HTML Code (Source View)</span>
+                <span class="pane-badge">Bidirectionally Synced</span>
               </div>
               <textarea 
                 id="html-code-input" 
                 class="html-textarea" 
-                placeholder="HTML markup will sync here automatically or you can write raw tags..."
+                placeholder="HTML markup will sync here automatically, or edit raw code to update the rich editor above..."
                 spellcheck="false"
               ></textarea>
-            </div>
-
-            <!-- Section 3: Live Preview -->
-            <div class="html-preview-pane">
-              <div class="split-pane-label">
-                <span>👁️ 3. Live Preview</span>
-              </div>
-              <iframe id="html-preview-frame" class="html-preview-frame" sandbox="allow-same-origin" title="Live HTML Preview"></iframe>
             </div>
           </div>
         </div>

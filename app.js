@@ -27,9 +27,20 @@ document.addEventListener('DOMContentLoaded', () => {
   const textEditorContainer = document.getElementById('text-editor-container');
   const htmlEditorContainer = document.getElementById('html-editor-container');
   const richToolbar = document.getElementById('rich-toolbar');
+  const richFormatBlock = document.getElementById('rich-format-block');
+  const richTextColor = document.getElementById('rich-text-color');
+  const richBgColor = document.getElementById('rich-bg-color');
   const richEditorCanvas = document.getElementById('rich-editor-canvas');
   const richCodeBtn = document.getElementById('rich-code-btn');
+  const richCodeBlockBtn = document.getElementById('rich-code-block-btn');
   const richLinkBtn = document.getElementById('rich-link-btn');
+  const richImageBtn = document.getElementById('rich-image-btn');
+  const richTableBtn = document.getElementById('rich-table-btn');
+  const calloutInfoBtn = document.getElementById('callout-info-btn');
+  const calloutWarnBtn = document.getElementById('callout-warn-btn');
+  const calloutSuccessBtn = document.getElementById('callout-success-btn');
+  const calloutTipBtn = document.getElementById('callout-tip-btn');
+  const richStatsIndicator = document.getElementById('rich-stats-indicator');
   const noteInput = document.getElementById('note-input');
   const htmlCodeInput = document.getElementById('html-code-input');
   const htmlPreviewFrame = document.getElementById('html-preview-frame');
@@ -39,13 +50,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const exportMdBtn = document.getElementById('export-md-btn');
   const importFileInput = document.getElementById('import-file-input');
 
-  // Simple Popover Elements
+  // Simple Popover Elements (Preview Only for HTML comments)
   const commentPopover = document.getElementById('comment-popover');
   const popoverBadge = document.getElementById('popover-badge');
   const popoverCloseBtn = document.getElementById('popover-close-btn');
   const popoverText = document.getElementById('popover-text');
-  const popoverHtmlSplit = document.getElementById('popover-html-split');
-  const popoverCodeView = document.getElementById('popover-code-view');
+  const popoverPreviewContainer = document.getElementById('popover-preview-container');
   const popoverIframe = document.getElementById('popover-iframe');
   const popoverTime = document.getElementById('popover-time');
   const popoverDeleteBtn = document.getElementById('popover-delete-btn');
@@ -460,9 +470,17 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // -------------------------------------------------------------
-  // 3-Section HTML Editor Synchronization & Rich Toolbar
+  // 3-Section HTML Editor Synchronization & Comprehensive Rich Toolbar
   // -------------------------------------------------------------
   let isSyncing = false;
+
+  function updateRichStats() {
+    if (!richEditorCanvas || !richStatsIndicator) return;
+    const text = richEditorCanvas.innerText || '';
+    const chars = text.length;
+    const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+    richStatsIndicator.textContent = `${words} word${words === 1 ? '' : 's'} • ${chars} character${chars === 1 ? '' : 's'}`;
+  }
 
   function syncFromRichText() {
     if (isSyncing || !richEditorCanvas || !htmlCodeInput) return;
@@ -472,6 +490,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (htmlPreviewFrame) {
       htmlPreviewFrame.srcdoc = formatHtmlDocument(html);
     }
+    updateRichStats();
     isSyncing = false;
   }
 
@@ -483,11 +502,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if (htmlPreviewFrame) {
       htmlPreviewFrame.srcdoc = formatHtmlDocument(html);
     }
+    updateRichStats();
     isSyncing = false;
   }
 
   // Rich Text Toolbar Actions
   if (richToolbar && richEditorCanvas) {
+    // 1. Standard command buttons
     richToolbar.querySelectorAll('button[data-cmd]').forEach(btn => {
       btn.addEventListener('mousedown', (e) => e.preventDefault());
       btn.addEventListener('click', (e) => {
@@ -500,6 +521,34 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     });
 
+    // 2. Paragraph / Heading Format Dropdown
+    if (richFormatBlock) {
+      richFormatBlock.addEventListener('change', (e) => {
+        richEditorCanvas.focus();
+        const tag = e.target.value;
+        document.execCommand('formatBlock', false, tag);
+        syncFromRichText();
+      });
+    }
+
+    // 3. Text Color & Highlight Pickers
+    if (richTextColor) {
+      richTextColor.addEventListener('input', (e) => {
+        richEditorCanvas.focus();
+        document.execCommand('foreColor', false, e.target.value);
+        syncFromRichText();
+      });
+    }
+
+    if (richBgColor) {
+      richBgColor.addEventListener('input', (e) => {
+        richEditorCanvas.focus();
+        document.execCommand('hiliteColor', false, e.target.value);
+        syncFromRichText();
+      });
+    }
+
+    // 4. Inline Code
     if (richCodeBtn) {
       richCodeBtn.addEventListener('mousedown', (e) => e.preventDefault());
       richCodeBtn.addEventListener('click', (e) => {
@@ -521,6 +570,24 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
+    // 5. Code Block
+    if (richCodeBlockBtn) {
+      richCodeBlockBtn.addEventListener('mousedown', (e) => e.preventDefault());
+      richCodeBlockBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        richEditorCanvas.focus();
+        const selection = window.getSelection();
+        let codeSnippet = '// Write code here...';
+        if (selection && !selection.isCollapsed) {
+          codeSnippet = selection.toString();
+        }
+        const preHtml = `<pre><code>${escapeHtml(codeSnippet)}</code></pre><p><br></p>`;
+        document.execCommand('insertHTML', false, preHtml);
+        syncFromRichText();
+      });
+    }
+
+    // 6. Link & Image
     if (richLinkBtn) {
       richLinkBtn.addEventListener('mousedown', (e) => e.preventDefault());
       richLinkBtn.addEventListener('click', (e) => {
@@ -534,6 +601,66 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
+    if (richImageBtn) {
+      richImageBtn.addEventListener('mousedown', (e) => e.preventDefault());
+      richImageBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        richEditorCanvas.focus();
+        const url = prompt('Enter Image URL (e.g. https://...):', 'https://');
+        if (url && url.trim()) {
+          const imgHtml = `<img src="${escapeAttr(url.trim())}" alt="Note image" style="max-width: 100%; border-radius: 4px; margin: 6px 0;" /><p><br></p>`;
+          document.execCommand('insertHTML', false, imgHtml);
+          syncFromRichText();
+        }
+      });
+    }
+
+    // 7. Table Generator
+    if (richTableBtn) {
+      richTableBtn.addEventListener('mousedown', (e) => e.preventDefault());
+      richTableBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        richEditorCanvas.focus();
+        const tableHtml = `<table>
+  <thead>
+    <tr><th>Feature</th><th>Dart</th><th>Python</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Example 1</td><td>Dart implementation</td><td>Python equivalent</td></tr>
+    <tr><td>Example 2</td><td>Compiled AOT</td><td>Interpreted Bytecode</td></tr>
+  </tbody>
+</table><p><br></p>`;
+        document.execCommand('insertHTML', false, tableHtml);
+        syncFromRichText();
+      });
+    }
+
+    // 8. Custom Callout Alert Boxes
+    function insertCallout(type, icon, title) {
+      richEditorCanvas.focus();
+      const calloutHtml = `<div class="editor-callout ${type}"><strong>${icon} ${title}:</strong> Add your analysis here...</div><p><br></p>`;
+      document.execCommand('insertHTML', false, calloutHtml);
+      syncFromRichText();
+    }
+
+    if (calloutInfoBtn) {
+      calloutInfoBtn.addEventListener('mousedown', (e) => e.preventDefault());
+      calloutInfoBtn.addEventListener('click', () => insertCallout('info', '💡', 'Info'));
+    }
+    if (calloutWarnBtn) {
+      calloutWarnBtn.addEventListener('mousedown', (e) => e.preventDefault());
+      calloutWarnBtn.addEventListener('click', () => insertCallout('warning', '⚠️', 'Warning'));
+    }
+    if (calloutSuccessBtn) {
+      calloutSuccessBtn.addEventListener('mousedown', (e) => e.preventDefault());
+      calloutSuccessBtn.addEventListener('click', () => insertCallout('success', '✅', 'Success'));
+    }
+    if (calloutTipBtn) {
+      calloutTipBtn.addEventListener('mousedown', (e) => e.preventDefault());
+      calloutTipBtn.addEventListener('click', () => insertCallout('tip', '🚀', 'Performance Tip'));
+    }
+
+    // Canvas Events
     richEditorCanvas.addEventListener('input', syncFromRichText);
     richEditorCanvas.addEventListener('keyup', (e) => {
       if (['Enter', 'Backspace', 'Delete'].includes(e.key)) {
@@ -982,7 +1109,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function formatHtmlDocument(rawHtml) {
     if (!rawHtml || !rawHtml.trim()) {
-      return `<!DOCTYPE html><html><head><meta charset="utf-8"><style>body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;margin:10px;font-size:13px;color:#94a3b8;font-style:italic;}</style></head><body>Live preview will appear here...</body></html>`;
+      return `<!DOCTYPE html><html><head><meta charset="utf-8"><style>body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;margin:12px;font-size:13px;color:#94a3b8;font-style:italic;}</style></head><body>Live preview will render here...</body></html>`;
     }
     if (/<html/i.test(rawHtml) || /<!DOCTYPE/i.test(rawHtml)) {
       return rawHtml;
@@ -994,18 +1121,44 @@ document.addEventListener('DOMContentLoaded', () => {
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-      margin: 10px;
-      font-size: 13px;
-      line-height: 1.45;
+      margin: 12px;
+      font-size: 13.5px;
+      line-height: 1.55;
       color: #1e293b;
       background: #ffffff;
       word-break: break-word;
     }
     * { box-sizing: border-box; }
-    h1, h2, h3, h4, h5, h6 { margin-top: 0; margin-bottom: 6px; color: #0f172a; }
-    p { margin-top: 0; margin-bottom: 8px; }
-    code { font-family: monospace; background: #f1f5f9; padding: 2px 4px; border-radius: 3px; font-size: 12px; }
-    pre { background: #0f172a; color: #f8fafc; padding: 8px; border-radius: 4px; overflow-x: auto; font-size: 12px; }
+    h1, h2, h3, h4, h5, h6 { margin-top: 0.35rem; margin-bottom: 0.25rem; color: #0f172a; line-height: 1.25; }
+    p { margin-top: 0; margin-bottom: 0.45rem; }
+    blockquote {
+      border-left: 3px solid #3b82f6;
+      padding: 4px 10px;
+      margin: 0.5rem 0;
+      background: rgba(59, 130, 246, 0.08);
+      border-radius: 0 4px 4px 0;
+      color: #334155;
+      font-style: italic;
+    }
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; background: #f1f5f9; color: #0284c7; padding: 2px 5px; border-radius: 4px; font-size: 12px; }
+    pre { background: #0f172a; color: #f8fafc; padding: 10px; border-radius: 6px; overflow-x: auto; font-size: 12px; margin: 0.5rem 0; }
+    pre code { background: transparent; color: inherit; padding: 0; }
+    table { width: 100%; border-collapse: collapse; margin: 0.6rem 0; font-size: 12.5px; }
+    table th, table td { border: 1px solid #cbd5e1; padding: 6px 10px; text-align: left; }
+    table th { background: #f8fafc; font-weight: 700; color: #0f172a; }
+    hr { border: none; border-top: 1px solid #e2e8f0; margin: 0.75rem 0; }
+    a { color: #2563eb; text-decoration: underline; }
+    .editor-callout {
+      padding: 8px 12px;
+      border-radius: 6px;
+      margin: 0.5rem 0;
+      font-size: 13px;
+      border-left: 4px solid;
+    }
+    .editor-callout.info { background: #eff6ff; border-color: #3b82f6; color: #1e3a8a; }
+    .editor-callout.warning { background: #fffbeb; border-color: #f59e0b; color: #78350f; }
+    .editor-callout.success { background: #ecfdf5; border-color: #10b981; color: #064e3b; }
+    .editor-callout.tip { background: #faf5ff; border-color: #a855f7; color: #581c87; }
   </style>
 </head>
 <body>
@@ -1016,7 +1169,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // -------------------------------------------------------------
   // Simple Comment Popover (Shows directly above commented text)
-  // Supports side-by-side HTML editor & preview for HTML comments
+  // When clicked on commented text, shows ONLY the preview section for HTML comments
   // -------------------------------------------------------------
   function showCommentPopover(mark, note) {
     activePopoverNoteId = note.id;
@@ -1025,12 +1178,8 @@ document.addEventListener('DOMContentLoaded', () => {
       commentPopover.classList.add('popover-html-mode');
       if (popoverBadge) popoverBadge.innerHTML = '🌐 HTML Comment';
       if (popoverText) popoverText.style.display = 'none';
-      if (popoverHtmlSplit) popoverHtmlSplit.style.display = 'grid';
-      if (popoverCodeView) popoverCodeView.textContent = note.content;
+      if (popoverPreviewContainer) popoverPreviewContainer.style.display = 'block';
       if (popoverIframe) popoverIframe.srcdoc = formatHtmlDocument(note.content);
-      if (window.Prism && popoverCodeView) {
-        Prism.highlightElement(popoverCodeView);
-      }
     } else {
       commentPopover.classList.remove('popover-html-mode');
       if (popoverBadge) popoverBadge.innerHTML = '💬 Comment';
@@ -1038,7 +1187,7 @@ document.addEventListener('DOMContentLoaded', () => {
         popoverText.style.display = 'block';
         popoverText.textContent = note.content;
       }
-      if (popoverHtmlSplit) popoverHtmlSplit.style.display = 'none';
+      if (popoverPreviewContainer) popoverPreviewContainer.style.display = 'none';
     }
 
     const dateStr = new Date(note.createdAt).toLocaleString(undefined, {
