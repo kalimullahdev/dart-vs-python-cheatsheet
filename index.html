@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dart vs Python - Simple Cheatsheet & Annotations</title>
+  <meta name="description" content="Simple, clear side-by-side cheatsheet comparing Dart and Python with under-the-hood runtime explanations and persistent notes.">
+  
+  <link rel="stylesheet" href="prism.min.css">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Minimalist Header -->
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="#" class="brand" aria-label="Home">
+        <span class="brand-tag-dart">Dart</span>
+        <span>⟷</span>
+        <span class="brand-tag-python">Python</span>
+        <span>Cheatsheet</span>
+      </a>
+
+      <!-- Search Input -->
+      <div class="search-box">
+        <svg class="search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input 
+          type="search" 
+          id="search-input" 
+          class="search-input" 
+          placeholder="Search syntax, concepts, GIL, null safety..." 
+          aria-label="Search cheatsheet"
+          autocomplete="off"
+        >
+        <span id="search-count" class="search-count">18</span>
+      </div>
+
+      <!-- Controls -->
+      <div class="header-controls">
+        <button id="notes-toggle-btn" class="btn-ctrl" type="button" title="Open My Notes & Comments">
+          <span>📝 Notes</span>
+          <span id="notes-badge" style="background:#2563eb; color:#fff; border-radius:9999px; padding:0.1rem 0.4rem; font-size:0.7rem; margin-left:0.2rem;">0</span>
+        </button>
+        <button id="view-toggle" class="btn-ctrl" type="button" title="Switch layout view">
+          <span>Split View</span>
+        </button>
+        <button id="theme-toggle" class="btn-ctrl" type="button" title="Toggle Theme" aria-label="Toggle Theme">
+          <span>🌙</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Clean Hero Area -->
+  <section class="hero">
+    <div class="hero-text">
+      <h1 class="hero-title">Dart vs Python Cheatsheet</h1>
+      <p class="hero-subtitle">
+        Side-by-side syntax comparison with clear explanations of what each piece of code does <strong>in reality</strong>. Highlight any text to add a comment or create persistent side notes.
+      </p>
+    </div>
+
+    <!-- Collapsible Architecture Matrix -->
+    <details class="arch-details" id="arch-details">
+      <summary class="arch-summary">
+        <span>⚡ Quick Architecture Comparison (AOT vs Bytecode, Isolates vs GIL, GC)</span>
+        <span style="font-size: 0.75rem; color: var(--text-muted);">Click to toggle</span>
+      </summary>
+      <div class="arch-table-wrap">
+        <table class="arch-table">
+          <thead>
+            <tr>
+              <th>Dimension</th>
+              <th>Dart (AOT / JIT / Web)</th>
+              <th>Python (CPython)</th>
+              <th>Core Difference</th>
+            </tr>
+          </thead>
+          <tbody id="arch-tbody">
+            <!-- Populated dynamically -->
+          </tbody>
+        </table>
+      </div>
+    </details>
+  </section>
+
+  <!-- Sticky Category Navigation Bar -->
+  <div class="category-bar-wrapper">
+    <nav class="category-bar" id="category-bar" aria-label="Categories">
+      <!-- Category pills dynamically populated -->
+    </nav>
+  </div>
+
+  <!-- Main Content Stream (Cards) -->
+  <main class="main-container" id="cards-container">
+    <!-- Cards dynamically populated -->
+  </main>
+
+  <!-- Floating Selection Tooltip -->
+  <div id="selection-tooltip" class="selection-tooltip" role="button" aria-label="Add comment to selected text">
+    <span>💬 Add Comment</span>
+  </div>
+
+  <!-- Drawer Backdrop -->
+  <div id="drawer-backdrop" class="drawer-backdrop"></div>
+
+  <!-- Side Notes Drawer -->
+  <aside id="notes-drawer" class="notes-drawer" aria-label="My Notes and Comments">
+    <div class="drawer-header">
+      <div class="drawer-title">
+        <span>📝 My Notes &amp; Comments</span>
+      </div>
+      <button id="drawer-close-btn" class="drawer-close-btn" type="button" aria-label="Close notes drawer">&times;</button>
+    </div>
+
+    <div class="drawer-body">
+      <!-- New Note Form -->
+      <div class="note-form-card">
+        <div id="quote-preview-box" class="quote-preview" style="display: none;">
+          <div>
+            <div style="font-size: 0.7rem; font-weight: 700; color: #eab308; margin-bottom: 0.15rem;">ATTACHED TO SELECTION:</div>
+            <div id="quote-preview-text" class="quote-preview-text"></div>
+          </div>
+          <button id="clear-quote-btn" class="clear-quote-btn" type="button" title="Remove quote attachment">&times;</button>
+        </div>
+
+        <textarea 
+          id="note-input" 
+          class="note-textarea" 
+          placeholder="Write a comment or side note... (Auto-saves permanently)"
+        ></textarea>
+        
+        <button id="save-note-btn" class="save-note-btn" type="button">Save Note</button>
+      </div>
+
+      <!-- Notes List -->
+      <div id="notes-list" class="notes-list">
+        <!-- Notes dynamically populated -->
+      </div>
+    </div>
+
+    <!-- Permanent Persistence & Backup Controls -->
+    <div class="drawer-footer">
+      <div class="storage-status">
+        <span>Storage:</span>
+        <span class="storage-status-pill">● Auto-saved locally</span>
+      </div>
+      <div class="export-import-row">
+        <button id="export-json-btn" class="btn-export" type="button" title="Download backup of notes as JSON">Export JSON</button>
+        <button id="export-md-btn" class="btn-export" type="button" title="Download notes as Markdown">Export Markdown</button>
+        <label class="btn-export" style="cursor: pointer;" title="Import notes from JSON file">
+          Import JSON
+          <input type="file" id="import-file-input" accept=".json" style="display: none;">
+        </label>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Clean Footer -->
+  <footer class="site-footer">
+    <p>Dart vs Python Cheatsheet with Permanent Notes &bull; Grounded in dart.dev &amp; docs.python.org</p>
+  </footer>
+
+  <!-- Notification Toast -->
+  <div id="toast" class="toast" role="status" aria-live="polite">Copied to clipboard!</div>
+
+  <!-- Scripts -->
+  <script src="prism.min.js"></script>
+  <script src="prism-dart.min.js"></script>
+  <script src="prism-python.min.js"></script>
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
