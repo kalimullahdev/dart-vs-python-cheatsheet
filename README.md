@@ -4,22 +4,9 @@ An interactive cheatsheet comparing the entire **Dart** (Dart 3+) and **Python**
 - **Dart**: [dart.dev](https://dart.dev)
 - **Python**: [docs.python.org](https://docs.python.org)
 
-Now featuring **interactive text annotations**, a **persistent Side Notes drawer**, and **permanent local storage**.
+🌐 **Live Demo on GitHub Pages**: [https://kalimullahdev.github.io/dart-vs-python-cheatsheet/](https://kalimullahdev.github.io/dart-vs-python-cheatsheet/)
 
----
-
-## Quick Start
-
-Open `index.html` directly in your browser:
-```bash
-open index.html
-```
-
-Or run via Python's built-in HTTP server:
-```bash
-python3 -m http.server 8080
-```
-Then visit `http://localhost:8080`.
+📦 **GitHub Repository**: [https://github.com/kalimullahdev/dart-vs-python-cheatsheet](https://github.com/kalimullahdev/dart-vs-python-cheatsheet)
 
 ---
 
@@ -44,3 +31,17 @@ Then visit `http://localhost:8080`.
 4. **Official Documentation Grounding**:
    - Every card has direct clickable links (`dart.dev ↗` and `docs.python.org ↗`).
    - "In Reality" sections explain low-level execution pipelines, memory allocation, and concurrency mechanics.
+
+---
+
+## Local Development
+
+Open `index.html` directly in your browser:
+```bash
+open index.html
+```
+
+Or run via Python's built-in HTTP server:
+```bash
+python3 -m http.server 8080
+```
